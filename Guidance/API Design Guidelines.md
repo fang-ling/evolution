@@ -149,3 +149,9 @@ explain how to make sure that your code feels like a part of the ecosystem.
 
 - **Methods can share a base name** when they share the same basic meaning or
   when they operate in distinct domains.
+
+## See Also
+
+A lot of these comments and recommendations have been culled from other sources.
+
+1. [Swift API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines/)
