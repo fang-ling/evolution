@@ -66,6 +66,10 @@ explain how to make sure that your code feels like a part of the ecosystem.
 
 - **Begin names of factory methods with "**make**",** e.g. `[x makeIterator];`.
 
+- **Methods that describe the state** of their receiver should be named as
+  predicates beginning with "is", "has", "can", or similar auxiliaries, e.g.
+  `isEnabled`, `hasChildren`, `canBecomeFirstResponder`.
+
 - **Protocols that describe what something is should read as nouns** (e.g.
   `Collection`).
 
