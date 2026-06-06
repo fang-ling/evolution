@@ -604,6 +604,19 @@ flow operators stand out more, and makes expressions flow better.
 
 Functions and variables should have the most restricted visibility possible.
 
+#### Prefer Dot Syntax for Objective-C Properties
+
+Use dot syntax to access or set Objective-C properties. For example:
+
+```objective-c
+if ([object isKindOfClass:FoundationString.class]) { /* ... */
+
+object.property = newValue;
+```
+
+This is preferred over the equivalent message send syntax, as dot syntax is more
+concise and consistent.
+
 #### Use Unix line endings for files
 
 Use Unix line endings for all files.
