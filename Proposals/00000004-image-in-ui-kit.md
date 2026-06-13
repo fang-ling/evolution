@@ -1,7 +1,8 @@
 # Image Display in UIKit
 
 * Proposal: [00000004](00000004-image-in-ui-kit.md)
-* Implementation: [fang-ling/core-animation-kit#7](https://github.com/fang-ling/core-animation-kit/pull/7), [fang-ling/javascript-core-kit#8](https://github.com/fang-ling/javascript-core-kit/pull/8), [fang-ling/ui-kit#9](https://github.com/fang-ling/ui-kit/pull/9)
+* Implementation: [fang-ling/core-animation-kit#7](https://github.com/fang-ling/core-animation-kit/pull/7), [fang-ling/javascript-core-kit#8](https://github.com/fang-ling/javascript-core-kit/pull/8), [fang-ling/ui-kit#9](https://github.com/fang-ling/ui-kit/pull/9), [fang-ling/javascript-core-kit#9](https://github.com/fang-ling/javascript-core-kit/pull/9), [fang-ling/ui-kit#10](https://github.com/fang-ling/ui-kit/pull/10)
+* Previous Revision: [1](https://github.com/fang-ling/evolution/blob/c12e33d36e882420b5034acbcd027f1d075bdd0c/Proposals/00000004-image-in-ui-kit.md)
 
 ## Summary of changes
 
@@ -118,6 +119,11 @@ URL for asynchronous images).
  * - ``makeImageWithURL:``
  * - ``makeImageWithSystemName:``
  * - ``makeImageWithSystemName:configuration``
+ *
+ * ### Getting the image size and scale
+ *
+ * - ``scale``
+ * - ``size``
  */
 @interface UIImage: ObjectiveCObject
 
@@ -139,6 +145,28 @@ URL for asynchronous images).
  * ``UIImageSymbolConfiguration`` object.
  */
 @property (nonatomic, copy, readonly) UIImageConfiguration* configuration;
+
+/**
+ * The scale factor of the image.
+ *
+ * If you load an image from a file whose name includes the `@2x` modifier, the
+ * scale is set to `2.0`. All other images are assumed to have a scale factor of
+ * `1.0`.
+ *
+ * If you multiply the logical size of the image (stored in the ``size``
+ * property) by the value in this property, you get the dimensions of the image
+ * in pixels.
+ */
+@property (nonatomic, readonly) CFloatingPoint scale;
+
+/**
+ * The logical dimensions, in points, for the image.
+ *
+ * This value reflects the logical size of the image and takes the image's
+ * current orientation into account. Multiply the size values by the value in
+ * the ``scale`` property to get the pixel dimensions of the image.
+ */
+@property (nonatomic, readonly) CoreFoundationSize size;
 
 /**
  * Creates an image object that contains a system symbol image.
