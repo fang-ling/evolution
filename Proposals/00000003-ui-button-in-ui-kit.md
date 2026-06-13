@@ -1,13 +1,13 @@
 # Add UIButton to UIKit
 
-* Proposal: [00000003](00000003-uibutton-in-uikit.md)
-* Implementation: [fang-ling/javascript-core-kit#7](https://github.com/fang-ling/javascript-core-kit/pull/7), [fang-ling/core-animation-kit#6](https://github.com/fang-ling/core-animation-kit/pull/6), [fang-ling/ui-kit#8](https://github.com/fang-ling/ui-kit/pull/8)
+* Proposal: [00000003](00000003-ui-button-in-ui-kit.md)
+* Implementation: [fang-ling/javascript-core-kit#7](https://github.com/fang-ling/javascript-core-kit/pull/7), [fang-ling/core-animation-kit#6](https://github.com/fang-ling/core-animation-kit/pull/6), [fang-ling/ui-kit#8](https://github.com/fang-ling/ui-kit/pull/8), [fang-ling/ui-kit#11](https://github.com/fang-ling/ui-kit/pull/11)
+* Previous Revision: [1](https://github.com/fang-ling/evolution/blob/5bba4660b4044b5579fa9a0824b3166715dfcdec/Proposals/00000003-ui-button-in-ui-kit.md)
 
 ## Summary of changes
 
 Add `UIControl`, `UIButton`, `UIButtonConfiguration`, and `UIAction` to UIKit,
-enabling interactive controls with modern action-based event handling. This
-initial implementation supports text-based buttons.
+enabling interactive controls with modern action-based event handling.
 
 ## Motivation
 
@@ -46,13 +46,20 @@ This proposal introduces four new UIKit types:
 - `UIAction`, an object representing an action that can be triggered by a
   control.
 
-The initial implementation intentionally focuses on a minimal but complete
-feature set:
+```objective-c
+let configuration = [UIButtonConfiguration makePlainButtonConfiguration];
+configuration.title = @"Tap Me";
 
-- Text-based buttons through `UIButtonConfiguration`.
-- Primary-action event handling through `UIAction`.
-- A minimal `UIControl` event model consisting of
-  `kUIControlEventPrimaryActionTriggered`.
+@weakify(self)
+let action = [UIAction makeActionWithHandler:^(UIAction* action) {
+  @strongify(self)
+
+  [self buttonDidTap];
+}];
+
+let button = [UIButton makeButtonWithConfiguration:configuration
+                                     primaryAction:action];
+```
 
 ## Detailed design
 
@@ -61,6 +68,8 @@ feature set:
 `UIAction` represents an action that may be triggered by a control.
 
 ```objective-c
+@class UIAction;
+
 /**
  * A type that defines the closure for an action handler.
  */ 
@@ -77,17 +86,13 @@ typedef void (^)(UIAction*) UIActionHandler;
 @property (nonatomic, readonly) FoundationString* identifier;
 
 /**
- * Creates an action with the specified identifier and handler.
+ * Creates an action with the automatically generated identifier and handler.
  *
- * - Parameters 
- *   - identifier: The unique identifier for the action. Specify `nil` to let
- *     this method create a unique identifier.
- *   - handler: The handler to invoke after a person selects the action. This
- *     handler has the following parameter:
- *       - action: The action that a person selects.
+ * - Parameter handler: The handler to invoke after a person selects the action.
+ *   This handler has the following parameter:
+ *     - action: The action that a person selects.
  */
-+ (UIAction*)makeActionWithIdentifier:(nullable FoundationString*)identifier
-                              handler:(UIActionHandler)handler;
++ (UIAction*)makeActionWithHandler:(UIActionHandler)handler;
 
 @end
 ```
@@ -172,9 +177,69 @@ events may be introduced by future proposals.
 `UIButtonConfiguration` describes the appearance and content of a button.
 
 ```objective-c
+/* UIGeometry.h */
+/**
+ * Constants that specify an edge or a set of edges, taking the user interface
+ * layout direction into account.
+ */
+typedef enum UIDirectionalRectangleEdge {
+  /**
+   * No specified edge.
+   */
+  kUIDirectionalRectangleEdgeNone = 0,
+
+  /**
+   * The top edge.
+   */
+  kUIDirectionalRectangleEdgeTop = 1 << 0,
+
+  /**
+   * The leading edge.
+   */
+  kUIDirectionalRectangleEdgeLeading = 1 << 1,
+
+  /**
+   * The bottom edge.
+   */
+  kUIDirectionalRectangleEdgeBottom = 1 << 2,
+
+  /**
+   * The trailing edge.
+   */
+  kUIDirectionalRectangleEdgeTrailing = 1 << 3
+
+  /**
+   * All edges.
+   */
+  kUIDirectionalRectangleEdgeAll =
+    UIDirectionalRectangleEdgeTop |
+    UIDirectionalRectangleEdgeLeading |
+    UIDirectionalRectangleEdgeBottom |
+    UIDirectionalRectangleEdgeTrailing
+} UIDirectionalRectangleEdge;
+```
+
+```objective-c
 /**
  * A configuration that specifies the appearance and behavior of a button and
  * its contents.
+ *
+ * ## Topics
+ *
+ * ### Creating configurations
+ *
+ * - ``makePlainButtonConfiguration``
+ *
+ * ### Configuring titles
+ *
+ * - ``title``
+ *
+ * ### Configuring images
+ *
+ * - ``image``
+ * - ``imagePadding``
+ * - ``imagePlacement``
+ * - ``preferredSymbolConfigurationForImage``
  */
 @interface UIButtonConfiguration: ObjectiveCObject
 
@@ -182,6 +247,41 @@ events may be introduced by future proposals.
  * The text of the title label the button displays.
  */
 @property (nullable, nonatomic, copy) FoundationString* title;
+
+/**
+ * The foreground image the button displays.
+ *
+ * A configuration contains one image. To change the image based on button
+ * state, use ``configurationUpdateHandler`` or ``updateConfiguration``.
+ */
+@property (nullable, nonatomic) UIImage* image;
+
+/**
+ * The distance between the button's image and text.
+ *
+ * Use this property to adjust the distance from the title and subtitle. This
+ * doesn't affect the distance to the button's edge.
+ */
+@property (nonatomic) CFloatingPoint imagePadding;
+
+/**
+ * The edge against which the button places the image.
+ *
+ * Use this property to place the image along the top, leading, trailing, or
+ * bottom edge of the button.
+ */
+@property (nonatomic) UIDirectionalRectangleEdge imagePlacement;
+
+/**
+ * A requested configuration object for the button symbol image.
+ *
+ * A symbol configuration defines details such as the point size, scale, text
+ * style, weight, and font of symbol image. The button uses these details to
+ * determine which variant of the image to use and how to scale or style the
+ * image.
+ */
+@property (nonatomic, copy)
+  UIImageSymbolConfiguration* preferredSymbolConfigurationForImage;
 
 /**
  * Creates a configuration for a button with a transparent background.
@@ -240,10 +340,29 @@ interactions.
 
 ### Rendering
 
-The rendering mechanism is an implementation detail.
+A `UIButton` delegates rendering of its subcomponents to dedicated views:
 
-Browser-based implementations choose to render buttons using DOM `<button>`
-elements.
+  - **Title** —— rendered by a `UILabel`
+  - **Image** —— rendered by a `UIImageView`
+
+The layout of these subcomponents is largely controlled by three properties:
+`contentInsets`, `imagePadding`, and `titlePadding`. Their spatial relationship
+is shown in the following figure.
+
+```plain
+    ╭──────────────────────────────╮
+    │        contentInsets         │    ①: imagePadding
+    │ ┌┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐ │    ②: titlePadding
+    │ ┆         ┌┄┄┄┄┄┐          ┆ │
+    │ ┆         ┆Title┆          ┆ │
+    │ ┆┌┄┄┄┄┄┐  └┄┄┄┄┄┘          ┆ │
+    │ ┆┆Image┆┄┄   ┆②            ┆ │
+    │ ┆└┄┄┄┄┄┘① ┌┄┄┄┄┄┄┄┄┐       ┆ │
+    │ ┆         ┆Subtitle┆       ┆ │
+    │ ┆         └┄┄┄┄┄┄┄┄┘       ┆ │
+    │ └┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘ │
+    ╰──────────────────────────────╯
+```
 
 ### Event dispatch
 
@@ -286,11 +405,6 @@ Future proposals may introduce additional configuration styles, including:
 - Tinted buttons
 
 Additional appearance customization APIs may also be considered.
-
-### Image support
-
-Future proposals may allow buttons to display images alongside or instead of
-text content.
 
 ### Additional control events
 
